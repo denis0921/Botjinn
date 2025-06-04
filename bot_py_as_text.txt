@@ -1,12 +1,12 @@
-
 import logging
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from collections import defaultdict
 import asyncio
+import os
 
-API_TOKEN = "PASTE_YOUR_BOT_TOKEN_HERE"
+API_TOKEN = os.getenv("BOT_TOKEN")
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,18 +26,21 @@ tap_kb.add(KeyboardButton("👆 Тапнуть"))
 
 @dp.message_handler(commands=["start"])
 async def start_handler(message: types.Message):
-    await message.answer("🧿 Добро пожаловать в Crypto Jinn TapBot!\nНажимай 👆 'Тапнуть', чтобы зарабатывать монеты.",
-                         reply_markup=tap_kb)
+    await message.answer(
+        "👋 Добро пожаловать в Crypto Jinn TapBot!\n"
+        "Нажимай 👆 'Тапнуть', чтобы зарабатывать монеты.",
+        reply_markup=tap_kb
+    )
 
 @dp.message_handler(lambda message: message.text == "👆 Тапнуть")
 async def tap_handler(message: types.Message):
     user = user_data[message.from_user.id]
     if user["taps"] >= 1000:
-        await message.answer("⏳ Лимит 1000 тапов в час исчерпан. Жди восстановления.")
+        await message.answer("⚠️ Лимит 1000 тапов в час исчерпан. Жди восстановления.")
         return
     user["balance"] += 1
     user["taps"] += 1
-    await message.answer(f"🪙 Ты заработал 1 монету!\n💰 Баланс: {user['balance']}\n📈 Уровень: {user['level']}")
+    await message.answer(f"😄 Ты заработал 1 монету!\n💰 Баланс: {user['balance']}\n📈 Уровень: {user['level']}")
 
 @dp.message_handler(commands=["level"])
 async def level_handler(message: types.Message):
@@ -46,9 +49,13 @@ async def level_handler(message: types.Message):
     if user["balance"] >= next_level_cost:
         user["balance"] -= next_level_cost
         user["level"] += 1
-        await message.answer(f"🎉 Ты повысил уровень!\n📈 Новый уровень: {user['level']}\n💰 Баланс: {user['balance']}")
+        await message.answer(
+            f"🚀 Ты повысил уровень!\n📈 Новый уровень: {user['level']}\n💰 Баланс: {user['balance']}"
+        )
     else:
-        await message.answer(f"❌ Нужно {next_level_cost} монет для повышения уровня.\n💰 Текущий баланс: {user['balance']}")
+        await message.answer(
+            f"❌ Нужно {next_level_cost} монет для повышения уровня.\n💰 Текущий баланс: {user['balance']}"
+        )
 
 async def reset_taps():
     while True:
@@ -60,3 +67,4 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.create_task(reset_taps())
     executor.start_polling(dp, skip_updates=True)
+
